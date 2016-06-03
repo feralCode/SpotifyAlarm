@@ -29,7 +29,7 @@ public class BootReceiver extends BroadcastReceiver {
                     sortOrder
             );
             TreeSet<Alarm> alarmColl = parseTable(c);
-            //reset the alarms
+            //TODO reset the alarms on boot
         }
     }
 

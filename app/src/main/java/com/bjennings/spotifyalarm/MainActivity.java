@@ -1,5 +1,7 @@
 package com.bjennings.spotifyalarm;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.TreeSet;
 
@@ -31,7 +34,6 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
         AlarmDbHelper dbHelper = new AlarmDbHelper(this);
         db = dbHelper.getWritableDatabase();
 
-        //populateAlarms();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         assert fab != null;
         fab.setOnClickListener(new View.OnClickListener() {
@@ -77,11 +79,12 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
         LinearLayout alarms = (LinearLayout)findViewById(R.id.alarm_container);
         assert alarms != null;
         alarms.removeAllViews();
+
         for (Alarm a : alarmColl) {
             final View aView = inflater.inflate(R.layout.alarm_layout, null);
             TextView time = (TextView)aView.findViewById(R.id.time);
             int hours = (int)a.time;
-            int minutes = (int)Math.ceil((a.time - (int)a.time) * 60);
+            int minutes = (int)Math.floor((a.time - (int)a.time) * 60);
             String letters;
 
             switch (hours) {
@@ -165,6 +168,11 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
         String selection = AlarmContract.AlarmDB._ID + " = ?";
         String[] selectionArgs = { args.getString("id") };
         db.delete(AlarmContract.AlarmDB.TABLE_NAME, selection, selectionArgs);
+        int id = Integer.parseInt(args.getString("id"));
+        AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
+        alarmMgr.cancel(alarmIntent);
         populateAlarms();
     }
 

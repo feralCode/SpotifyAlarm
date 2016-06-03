@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Alarms</string>
     <string name="action_settings">Settings</string>
+
+    <string name="title_activity_alarm">Alarm</string>
+    <string name="end_alarm">Stop Alarm</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

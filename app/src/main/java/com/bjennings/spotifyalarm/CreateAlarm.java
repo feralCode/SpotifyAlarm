@@ -68,22 +68,28 @@ public class CreateAlarm extends AppCompatActivity {
                 values.put(AlarmContract.AlarmDB.COLUMN_NAME_TIME, time);
                 values.put(AlarmContract.AlarmDB.COLUMN_NAME_ENABLED, true);
 
-                db.insert(
+                long id = db.insert(
                         AlarmContract.AlarmDB.TABLE_NAME,
                         null,
                         values
                 );
 
                 AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-                //Intent intent = new Intent(context, AlarmReceiver.class);
-                //PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+                Intent intent = new Intent(context, AlarmReceiver.class);
+                PendingIntent alarmIntent = PendingIntent.getBroadcast(context, (int)id, intent, 0);
 
                 Calendar calendar = Calendar.getInstance();
                 calendar.setTimeInMillis(System.currentTimeMillis());
                 calendar.set(Calendar.HOUR_OF_DAY, hours);
                 calendar.set(Calendar.MINUTE, minutes);
 
-                //alarmMgr.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
+                if (android.os.Build.VERSION.SDK_INT >= 23) {
+                    alarmMgr.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
+                } else if ( android.os.Build.VERSION.SDK_INT >= 19) {
+                    alarmMgr.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
+                } else {
+                    alarmMgr.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
+                }
 
                 finish();
             }
