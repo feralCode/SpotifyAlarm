@@ -6,6 +6,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,7 +18,7 @@ import android.widget.TimePicker;
 
 import java.util.Calendar;
 
-public class CreateAlarm extends AppCompatActivity {
+public class CreateAlarm extends AppCompatActivity implements SongPickerFragment.SongPickerListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +51,7 @@ public class CreateAlarm extends AppCompatActivity {
                 float time = 0;
                 int hours, minutes;
                 TimePicker t = (TimePicker)findViewById(R.id.timePicker);
+                assert t != null;
                 if (android.os.Build.VERSION.SDK_INT > 22) {
                     time += t.getHour();
                     hours = t.getHour();
@@ -94,5 +97,15 @@ public class CreateAlarm extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onSelectSong(Bundle args) {
+
+    }
+
+    @Override
+    public void onCancel(Fragment frag) {
+        getSupportFragmentManager().beginTransaction().remove(frag).commit();
     }
 }

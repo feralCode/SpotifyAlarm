@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
@@ -18,13 +19,56 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.spotify.sdk.android.authentication.AuthenticationClient;
+import com.spotify.sdk.android.authentication.AuthenticationRequest;
+import com.spotify.sdk.android.authentication.AuthenticationResponse;
+import com.spotify.sdk.android.player.Config;
+import com.spotify.sdk.android.player.ConnectionStateCallback;
+import com.spotify.sdk.android.player.Player;
+import com.spotify.sdk.android.player.PlayerNotificationCallback;
+import com.spotify.sdk.android.player.PlayerState;
+import com.spotify.sdk.android.player.Spotify;
+
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TreeSet;
 
-public class MainActivity extends AppCompatActivity implements ConfirmFragment.ConfirmEvents {
+public class MainActivity extends AppCompatActivity implements ConfirmFragment.ConfirmEvents, ConnectionStateCallback {
     private SQLiteDatabase db;
-    final Context context = this;
+    private final Context context = this;
+
+    private static final String CLIENT_ID = "88149444040e4b1b96119f43f0013040";
+    private static final String REDIRECT_URI = "bestspotifyalarm://callback";
+    private static final int REQUEST_CODE = 69;
+
+    private Player mPlayer;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if (requestCode == REQUEST_CODE) {
+            AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
+            /*if (response.getType() == AuthenticationResponse.Type.TOKEN) {
+                //possibly do something, but not now
+            }*/
+        }
+    }
+
+    @Override
+    public void onLoggedIn() {}
+
+    @Override
+    public void onLoggedOut() {}
+
+    @Override
+    public void onLoginFailed(Throwable error) {}
+
+    @Override
+    public void onTemporaryError() {}
+
+    @Override
+    public void onConnectionMessage(String message) {}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +90,12 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
+        builder.setScopes(new String[]{"user-read-private", "streaming"});
+        AuthenticationRequest request = builder.build();
+
+        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
     }
 
     @Override
@@ -57,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Spotify.destroyPlayer(this);
         db.close();
     }
 
@@ -81,10 +132,10 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
         alarms.removeAllViews();
 
         for (Alarm a : alarmColl) {
-            final View aView = inflater.inflate(R.layout.alarm_layout, null);
+            final View aView = inflater.inflate(R.layout.alarm_layout, alarms);
             TextView time = (TextView)aView.findViewById(R.id.time);
             int hours = (int)a.time;
-            int minutes = (int)Math.floor((a.time - (int)a.time) * 60);
+            int minutes = Math.round((a.time - (int)a.time) * 60);
             String letters;
 
             switch (hours) {
@@ -148,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
     }
 
     private TreeSet<Alarm> parseTable(Cursor c) {
-        TreeSet<Alarm> alarms = new TreeSet<Alarm>();
+        TreeSet<Alarm> alarms = new TreeSet<>();
         boolean parse = c.moveToFirst();
 
         while (parse) {
@@ -192,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
             enabled = _enabled;
         }
 
-        public int compareTo(Alarm that) {
+        public int compareTo(@NonNull Alarm that) {
             return this.time > that.time ? 1 : this.time == that.time ? 0 : -1;
         }
     }

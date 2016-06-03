@@ -1,0 +1,55 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.bjennings.spotifyalarm.SongPickerFragment">
+
+     <!-- TODO: Update blank fragment layout -->
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/song_picker_title"
+            android:id="@+id/title"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="0dp"
+            android:gravity="center" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/song_holder"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="52dp"/>
+
+        <RelativeLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="52dp"
+            android:id="@+id/button_layout">
+
+            <Button
+                android:layout_width="165dp"
+                android:layout_height="wrap_content"
+                android:text="@string/songPickerCancel"
+                android:id="@+id/cancelBtn"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="15dp"
+                android:layout_alignParentTop="false"
+                android:layout_marginTop="0dp" />
+
+            <Button
+                android:layout_width="165dp"
+                android:layout_height="wrap_content"
+                android:text="@string/songPickerSubmit"
+                android:id="@+id/submitBtn"
+                android:layout_alignParentLeft="false"
+                android:layout_alignParentTop="false"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="15dp" />
+        </RelativeLayout>
+</FrameLayout>

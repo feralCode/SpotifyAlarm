@@ -1,6 +1,7 @@
 package com.bjennings.spotifyalarm;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,12 +9,70 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class Alarm extends AppCompatActivity {
+import com.spotify.sdk.android.authentication.AuthenticationClient;
+import com.spotify.sdk.android.authentication.AuthenticationRequest;
+import com.spotify.sdk.android.authentication.AuthenticationResponse;
+import com.spotify.sdk.android.player.Config;
+import com.spotify.sdk.android.player.ConnectionStateCallback;
+import com.spotify.sdk.android.player.Player;
+import com.spotify.sdk.android.player.PlayerNotificationCallback;
+import com.spotify.sdk.android.player.PlayerState;
+import com.spotify.sdk.android.player.Spotify;
+
+public class Alarm extends AppCompatActivity implements PlayerNotificationCallback, ConnectionStateCallback {
     private static final boolean AUTO_HIDE = true;
     private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
     private View mContentView;
+
+    private static final String CLIENT_ID = "88149444040e4b1b96119f43f0013040";
+    private static final String REDIRECT_URI = "bestspotifyalarm://callback";
+    private static final int REQUEST_CODE = 69;
+    private Player mPlayer;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if (requestCode == REQUEST_CODE) {
+            AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
+            if (response.getType() == AuthenticationResponse.Type.TOKEN) {
+                Config playerConfig = new Config(this, response.getAccessToken(), CLIENT_ID);
+                Spotify.getPlayer(playerConfig, this, new Player.InitializationObserver() {
+                    @Override
+                    public void onInitialized(Player player) {
+                        mPlayer = player;
+                        mPlayer.addPlayerNotificationCallback(Alarm.this);
+                        mPlayer.play("spotify:track:2TpxZ7JUBn3uw46aR7qd6V");
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {}
+                });
+            }
+        }
+    }
+
+    @Override
+    public void onLoggedIn() {}
+
+    @Override
+    public void onLoggedOut() {}
+
+    @Override
+    public void onLoginFailed(Throwable error) {}
+
+    @Override
+    public void onTemporaryError() {}
+
+    @Override
+    public void onConnectionMessage(String message) {}
+    @Override
+    public void onPlaybackEvent(EventType eventType, PlayerState playerState) {}
+
+    @Override
+    public void onPlaybackError(ErrorType errorType, String errorDetails) {}
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -64,8 +123,6 @@ public class Alarm extends AppCompatActivity {
 
         setContentView(R.layout.activity_alarm);
 
-        //TODO make this actually be an alarm
-
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
@@ -75,7 +132,13 @@ public class Alarm extends AppCompatActivity {
                 toggle();
             }
         });
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        //findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+
+        AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
+        builder.setScopes(new String[]{"user-read-private", "streaming"});
+        AuthenticationRequest request = builder.build();
+
+        AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
     }
 
     @Override
