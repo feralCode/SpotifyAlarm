@@ -4,7 +4,7 @@
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -24,23 +24,27 @@
         </activity>
         <activity
             android:name=".CreateAlarm"
-            android:parentActivityName=".MainActivity"/>
+            android:parentActivityName=".MainActivity" />
 
         <receiver android:name=".BootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".AlarmReceiver" />
 
         <activity
             android:name=".Alarm"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_alarm"
-            android:theme="@style/FullscreenTheme"/>
-
+            android:theme="@style/FullscreenTheme" />
         <activity
             android:name="com.spotify.sdk.android.authentication.LoginActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <service
+            android:name=".AlarmIntentService"
+            android:exported="false"/>
     </application>
 
 </manifest>

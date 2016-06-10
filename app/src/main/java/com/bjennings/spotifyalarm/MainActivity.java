@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
         alarms.removeAllViews();
 
         for (Alarm a : alarmColl) {
-            final View aView = inflater.inflate(R.layout.alarm_layout, alarms);
+            final View aView = inflater.inflate(R.layout.alarm_layout, alarms, false);
             TextView time = (TextView)aView.findViewById(R.id.time);
             int hours = (int)a.time;
             int minutes = Math.round((a.time - (int)a.time) * 60);
