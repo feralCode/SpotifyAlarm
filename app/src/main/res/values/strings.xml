@@ -1,12 +1,8 @@
 <resources>
     <string name="app_name">Alarms</string>
     <string name="action_settings">Settings</string>
-
     <string name="title_activity_alarm">Alarm</string>
     <string name="end_alarm">Stop Alarm</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="songPickerSubmit">Submit</string>
     <string name="songPickerCancel">Cancel</string>
     <string name="song_picker_title">Pick a Song</string>

@@ -14,15 +14,19 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TimePicker;
 
+import java.lang.reflect.Method;
 import java.util.Calendar;
 
 public class CreateAlarm extends AppCompatActivity implements SongPickerFragment.SongPickerListener {
+    Method getHour, getMinute, setHour;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setMethods(Build.VERSION.SDK_INT);
         setContentView(R.layout.activity_create_alarm);
         final Context context = this;
 
@@ -38,6 +42,22 @@ public class CreateAlarm extends AppCompatActivity implements SongPickerFragment
         assert saveBtn != null;
         assert cancelBtn != null;
 
+        final TimePicker t = (TimePicker)findViewById(R.id.timePicker);
+        assert t != null;
+        LinearLayout ampm = (LinearLayout)t.findViewById(getResources().getIdentifier("android:id/ampm_layout", null, null));
+        ampm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int hours;
+                if (Build.VERSION.SDK_INT > 22) {
+                    hours = t.getHour();
+                } else {
+                    hours = t.getCurrentHour();
+                }
+                toggleTime((LinearLayout)v, t, hours);
+            }
+        });
+
         cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,7 +72,7 @@ public class CreateAlarm extends AppCompatActivity implements SongPickerFragment
                 int hours, minutes;
                 TimePicker t = (TimePicker)findViewById(R.id.timePicker);
                 assert t != null;
-                if (android.os.Build.VERSION.SDK_INT > 22) {
+                if (Build.VERSION.SDK_INT > 22) {
                     time += t.getHour();
                     hours = t.getHour();
                     time += (float)t.getMinute()/60.0;
@@ -86,9 +106,9 @@ public class CreateAlarm extends AppCompatActivity implements SongPickerFragment
                 calendar.set(Calendar.HOUR_OF_DAY, hours);
                 calendar.set(Calendar.MINUTE, minutes);
 
-                if (android.os.Build.VERSION.SDK_INT >= 23) {
+                if (Build.VERSION.SDK_INT >= 23) {
                     alarmMgr.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
-                } else if ( android.os.Build.VERSION.SDK_INT >= 19) {
+                } else if ( Build.VERSION.SDK_INT >= 19) {
                     alarmMgr.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
                 } else {
                     alarmMgr.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
@@ -97,6 +117,27 @@ public class CreateAlarm extends AppCompatActivity implements SongPickerFragment
                 finish();
             }
         });
+    }
+
+    private void toggleTime(LinearLayout ampm, TimePicker t, int hours) {
+        try {
+            if (hours >= 12) {
+                setHour.invoke(t, hours - 12);
+                //View pm =;
+            } else {
+                setHour.invoke(t, hours + 12);
+                //hide am, show pm
+            }
+        } catch (Exception e) {}
+    }
+
+    private void setMethods(int sdk) {
+        Class[] args = {Integer.class};
+        try {
+            setHour = sdk >= 23 ? TimePicker.class.getMethod("setHour", args) : TimePicker.class.getMethod("setCurrentHour", args);
+            getMinute = sdk >= 23 ? TimePicker.class.getMethod("getMinute", args) : TimePicker.class.getMethod("getCurrentMinute", args);
+            getHour = sdk >= 23 ? TimePicker.class.getMethod("getHour", args) : TimePicker.class.getMethod("getCurrentHour", args);
+        } catch (Exception e) {}
     }
 
     @Override
