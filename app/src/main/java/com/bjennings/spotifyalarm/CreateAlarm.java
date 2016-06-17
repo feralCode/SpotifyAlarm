@@ -90,6 +90,7 @@ public class CreateAlarm extends AppCompatActivity implements SongPickerFragment
                 ContentValues values = new ContentValues();
                 values.put(AlarmContract.AlarmDB.COLUMN_NAME_TIME, time);
                 values.put(AlarmContract.AlarmDB.COLUMN_NAME_ENABLED, true);
+                values.put(AlarmContract.AlarmDB.COLUMN_NAME_SONG_ID, "6eVGXaZsnu848238Q0QjAN");
 
                 long id = db.insert(
                         AlarmContract.AlarmDB.TABLE_NAME,
@@ -97,24 +98,17 @@ public class CreateAlarm extends AppCompatActivity implements SongPickerFragment
                         values
                 );
 
-                AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-                Intent intent = new Intent(context, AlarmReceiver.class);
-                PendingIntent alarmIntent = PendingIntent.getBroadcast(context, (int)id, intent, 0);
-
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTimeInMillis(System.currentTimeMillis());
-                calendar.set(Calendar.HOUR_OF_DAY, hours);
-                calendar.set(Calendar.MINUTE, minutes);
-
-                if (Build.VERSION.SDK_INT >= 23) {
-                    alarmMgr.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
-                } else if ( Build.VERSION.SDK_INT >= 19) {
-                    alarmMgr.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
-                } else {
-                    alarmMgr.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), alarmIntent);
-                }
-
+                Alarm.create(context, (int)id, hours, minutes, 0, "6eVGXaZsnu848238Q0QjAN");
                 finish();
+            }
+        });
+
+        View songPicker = findViewById(R.id.song_picker);
+        assert songPicker != null;
+        songPicker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO Do things
             }
         });
     }
@@ -123,7 +117,7 @@ public class CreateAlarm extends AppCompatActivity implements SongPickerFragment
         try {
             if (hours >= 12) {
                 setHour.invoke(t, hours - 12);
-                //View pm =;
+                //hide pm, show am;
             } else {
                 setHour.invoke(t, hours + 12);
                 //hide am, show pm

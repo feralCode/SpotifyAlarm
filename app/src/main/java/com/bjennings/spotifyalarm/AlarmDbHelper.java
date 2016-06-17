@@ -9,9 +9,10 @@ public class AlarmDbHelper extends SQLiteOpenHelper{
             "CREATE TABLE " + AlarmContract.AlarmDB.TABLE_NAME +
             " (" + AlarmContract.AlarmDB._ID + " INTEGER PRIMARY KEY," +
             AlarmContract.AlarmDB.COLUMN_NAME_TIME + " REAL," +
-            AlarmContract.AlarmDB.COLUMN_NAME_ENABLED + " TINYINT)";
+            AlarmContract.AlarmDB.COLUMN_NAME_ENABLED + " TINYINT," +
+            AlarmContract.AlarmDB.COLUMN_NAME_SONG_ID + " VARCHAR(25))";
 
-    private static final String DELETE_ENTRIES =
+    private static final String DELETE =
             "DROP TABLE IF EXISTS " + AlarmContract.AlarmDB.TABLE_NAME;
 
     public static final int DATABASE_VERSION = 1;

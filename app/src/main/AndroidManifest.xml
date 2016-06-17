@@ -34,10 +34,12 @@
         <receiver android:name=".AlarmReceiver" />
 
         <activity
-            android:name=".Alarm"
+            android:name=".AlarmActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_alarm"
-            android:theme="@style/FullscreenTheme" />
+            android:theme="@style/FullscreenTheme"
+            android:noHistory="true"/>
+
         <activity
             android:name="com.spotify.sdk.android.authentication.LoginActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />

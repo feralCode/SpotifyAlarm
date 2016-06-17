@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-
 import java.util.TreeSet;
 
 public class BootReceiver extends BroadcastReceiver {
@@ -17,7 +16,7 @@ public class BootReceiver extends BroadcastReceiver {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
 
             String[] projection = {AlarmContract.AlarmDB._ID, AlarmContract.AlarmDB.COLUMN_NAME_ENABLED,
-                    AlarmContract.AlarmDB.COLUMN_NAME_TIME};
+                    AlarmContract.AlarmDB.COLUMN_NAME_TIME, AlarmContract.AlarmDB.COLUMN_NAME_SONG_ID};
             String sortOrder = AlarmContract.AlarmDB.COLUMN_NAME_TIME + " ASC";
             Cursor c = db.query(
                     AlarmContract.AlarmDB.TABLE_NAME,
@@ -29,7 +28,12 @@ public class BootReceiver extends BroadcastReceiver {
                     sortOrder
             );
             TreeSet<Alarm> alarmColl = parseTable(c);
-            //TODO reset the alarms on boot
+
+            for (Alarm a : alarmColl) {
+                int hours = (int)a.time;
+                int minutes = Math.round((a.time - (int)a.time) * 60);
+                Alarm.create(context, a.id, hours, minutes, 0, a.track);
+            }
         }
     }
 
@@ -41,27 +45,12 @@ public class BootReceiver extends BroadcastReceiver {
             int id = c.getInt(c.getColumnIndexOrThrow(AlarmContract.AlarmDB._ID));
             float time = c.getFloat(c.getColumnIndexOrThrow(AlarmContract.AlarmDB.COLUMN_NAME_TIME));
             boolean enabled = c.getShort(c.getColumnIndexOrThrow(AlarmContract.AlarmDB.COLUMN_NAME_ENABLED)) == 1;
+            String track = c.getString(c.getColumnIndexOrThrow(AlarmContract.AlarmDB.COLUMN_NAME_SONG_ID));
 
-            alarms.add(new Alarm(id, time, enabled));
+            alarms.add(new Alarm(id, time, enabled, track));
             parse = c.moveToNext();
         }
 
         return alarms;
-    }
-
-    private class Alarm implements Comparable<Alarm> {
-        public int id;
-        public float time;
-        public boolean enabled;
-
-        public Alarm(int _id, float _time, boolean _enabled) {
-            id = _id;
-            time = _time;
-            enabled = _enabled;
-        }
-
-        public int compareTo(Alarm that) {
-            return this.time > that.time ? 1 : this.time == that.time ? 0 : -1;
-        }
     }
 }

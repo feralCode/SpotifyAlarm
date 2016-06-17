@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -22,11 +23,8 @@ import android.widget.TextView;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
-import com.spotify.sdk.android.player.Config;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.Player;
-import com.spotify.sdk.android.player.PlayerNotificationCallback;
-import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.Spotify;
 
 import java.util.Calendar;
@@ -113,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
 
     private void populateAlarms() {
         String[] projection = {AlarmContract.AlarmDB._ID, AlarmContract.AlarmDB.COLUMN_NAME_ENABLED,
-                AlarmContract.AlarmDB.COLUMN_NAME_TIME};
+                AlarmContract.AlarmDB.COLUMN_NAME_TIME, AlarmContract.AlarmDB.COLUMN_NAME_SONG_ID};
         String sortOrder = AlarmContract.AlarmDB.COLUMN_NAME_TIME + " ASC";
         Cursor c = db.query(
                 AlarmContract.AlarmDB.TABLE_NAME,
@@ -131,16 +129,17 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
         assert alarms != null;
         alarms.removeAllViews();
 
-        for (Alarm a : alarmColl) {
+        for (final Alarm a : alarmColl) {
             final View aView = inflater.inflate(R.layout.alarm_layout, alarms, false);
             TextView time = (TextView)aView.findViewById(R.id.time);
-            int hours = (int)a.time;
-            int minutes = Math.round((a.time - (int)a.time) * 60);
+            final int hours = (int)a.time;
+            int displayHours = hours;
+            final int minutes = Math.round((a.time - (int)a.time) * 60);
             String letters;
 
             switch (hours) {
                 case 0:
-                    hours = 12;
+                    displayHours = 12;
                 case 1:case 2:case 3:case 4:case 5:case 6:case 7:case 8:case 9:case 10:case 11:
                     letters = "AM";
                     break;
@@ -148,19 +147,20 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
                     letters = "PM";
                     break;
                 default:
-                    hours -= 12;
+                    displayHours -= 12;
                     letters = "PM";
             }
 
-            time.setText(String.format(new Locale("en-US"), "%2d:%02d %s", hours, minutes, letters));
+            time.setText(String.format(new Locale("en-US"), "%2d:%02d %s", displayHours, minutes, letters));
 
             Switch enabled = (Switch)aView.findViewById(R.id.enabled);
             enabled.setChecked(a.enabled);
             enabled.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    boolean enabled = ((Switch)aView.findViewById(R.id.enabled)).isChecked();
 
+                    int id = Integer.parseInt(String.valueOf(((TextView)aView.findViewById(R.id.id)).getText()));
                     ContentValues values = new ContentValues();
+                    boolean enabled = ((Switch)v).isChecked();
                     values.put(AlarmContract.AlarmDB.COLUMN_NAME_ENABLED, enabled);
 
                     String selection = AlarmContract.AlarmDB._ID + " LIKE ?";
@@ -171,6 +171,12 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
                             values,
                             selection,
                             selectionArgs);
+
+                    if (enabled) {
+                        Alarm.create(context, id, hours, minutes, 0, a.track);
+                    } else {
+                        Alarm.delete(context, id);
+                    }
                 }
             });
 
@@ -206,8 +212,9 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
             int id = c.getInt(c.getColumnIndexOrThrow(AlarmContract.AlarmDB._ID));
             float time = c.getFloat(c.getColumnIndexOrThrow(AlarmContract.AlarmDB.COLUMN_NAME_TIME));
             boolean enabled = c.getShort(c.getColumnIndexOrThrow(AlarmContract.AlarmDB.COLUMN_NAME_ENABLED)) == 1;
+            String track = c.getString(c.getColumnIndexOrThrow(AlarmContract.AlarmDB.COLUMN_NAME_SONG_ID));
 
-            alarms.add(new Alarm(id, time, enabled));
+            alarms.add(new Alarm(id, time, enabled, track));
             parse = c.moveToNext();
         }
 
@@ -220,31 +227,13 @@ public class MainActivity extends AppCompatActivity implements ConfirmFragment.C
         String[] selectionArgs = { args.getString("id") };
         db.delete(AlarmContract.AlarmDB.TABLE_NAME, selection, selectionArgs);
         int id = Integer.parseInt(args.getString("id"));
-        AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, AlarmReceiver.class);
-        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
-        alarmMgr.cancel(alarmIntent);
+
+        Alarm.delete(context, id);
         populateAlarms();
     }
 
     @Override
     public void onCancel(Bundle args) {
         //nothing
-    }
-
-    private class Alarm implements Comparable<Alarm> {
-        public int id;
-        public float time;
-        public boolean enabled;
-
-        public Alarm(int _id, float _time, boolean _enabled) {
-            id = _id;
-            time = _time;
-            enabled = _enabled;
-        }
-
-        public int compareTo(@NonNull Alarm that) {
-            return this.time > that.time ? 1 : this.time == that.time ? 0 : -1;
-        }
     }
 }

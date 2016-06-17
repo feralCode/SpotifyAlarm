@@ -9,6 +9,6 @@ public final class AlarmContract {
         public static final String TABLE_NAME = "alarm";
         public static final String COLUMN_NAME_TIME = "time";
         public static final String COLUMN_NAME_ENABLED = "enabled";
-        public static final String SONG_ID = "2aLJLYZe3dkIvMM9wGb4Gw";
+        public static final String COLUMN_NAME_SONG_ID = "song_id";
     }
 }

@@ -21,7 +21,8 @@
                 android:layout_gravity="center"
                 android:paddingBottom="15dp" />
 
-            <include layout="@layout/track_layout" />
+            <include layout="@layout/track_layout"
+                android:id="@+id/song_picker" />
 
             <LinearLayout
                 android:orientation="horizontal"
